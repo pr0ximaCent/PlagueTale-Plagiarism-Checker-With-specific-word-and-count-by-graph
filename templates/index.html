@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Styles for the loading overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            z-index: 9999; /* Make sure it's on top of other elements */
+        }
+    
+        /* Styles for the loading indicator and text */
+        .spinner {
+            /* Add your spinner styles here (e.g., a rotating spinner) */
+        }
+    
+        p {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+    
+
+    <title>PDF to Text Converter</title>
+</head>
+
+<body class="bg-gray-100 p-8">
+    <div id="loadingOverlay" class="overlay">
+        <!-- You can customize the loading indicator here -->
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+    <div>
+        <div class="max-w-md mx-auto bg-white rounded p-6">
+            <h2 class="text-2xl font-bold mb-4">PDF to Text Converter</h2>
+    
+            <form action="javascript:void(0);" id="pdfForm" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="file_data_1">Choose PDF File 1:</label>
+                    <input type="file" name="file_data_1" id="file_data_1" accept=".pdf, .docx"
+                        class="border rounded w-full py-2 px-3">
+                </div>
+    
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="file_data_2">Choose PDF File 2:</label>
+                    <input type="file" name="file_data_2" id="file_data_2" accept=".pdf, .docx"
+                        class="border rounded w-full py-2 px-3">
+                </div>
+    
+                <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+                    onclick="convertToText()">Convert to Text
+                </button>
+            </form>
+    
+            <div class="mt-8">
+                <h3 class="text-lg font-bold mb-4">Output Text:</h3>
+                <pre id="output" class="border p-4 bg-gray-100"></pre>
+            </div>
+            <div id="container"></div>
+        </div>
+    </div>
+    <script src="{{url_for('static', filename='js/d3.js')}}"> </script>
+    <script>
+        function convertToText() {
+            document.getElementById("loadingOverlay").style.display = "block";
+            const form = document.getElementById('pdfForm');
+            const formData = new FormData(form);
+            console.log(formData)
+            // return false;
+            fetch('http://127.0.0.1:5000/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("loadingOverlay").style.display = "none";
+                    // console.log('Success:', data);
+                    document.getElementById('output').innerText = JSON.parse(data)[0];
+                    data = JSON.parse(data)[1];
+
+                    // sort data
+                    data.sort(function (a, b) {
+                        return b[Object.keys(b)[0]] - a[Object.keys(a)[0]];
+                    });
+                    // grab the first maximum value
+                    var max_word_frequency = data[0][Object.keys(data[0])[0]];
+                    console.log(max_word_frequency);
+                    // convert it to nearest maximum value 
+                    var nearest_max_word_frequency = Math.ceil(max_word_frequency / 10) * 10 + 5;
+                    // // The data
+                    // var data = [
+                    //     { 'vgm': 36 }, { 'rumkl': 59 }, { 'xrwb': 84 }, { 'kkvxpktq': 24 },
+                    //     { 'bxhfy': 52 }, { 'gtbwdl': 53 }, { 'opz': 99 }, { 'ktddere': 46 },
+                    //     { 'wbqfwogz': 53 }, { 'drgawt': 92 }
+                    // ];
+
+                    // Dimensions and margins
+                    var margin = { top: 30, right: 60, bottom: 70, left: 30 },
+                        width = 460 - margin.left - margin.right,
+                        height = 400 - margin.top - margin.bottom;
+
+                    // Append SVG object to the body
+                    document.getElementById('container').innerHTML = "";
+                    var svg = d3.select("#container")
+                        .append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", `translate(${margin.left},${margin.top})`);
+                    // Map data to a new array for ease of use
+                    var processedData = data.map(function (d) {
+                        var key = Object.keys(d)[0];
+                        return { word: key, frequency: d[key] };
+                    });
+
+                    // X axis
+                    var x = d3.scaleBand()
+                        .range([0, width])
+                        .domain(processedData.map(function (d) { return d.word; }))
+                        .padding(0.2);
+                    svg.append("g")
+                        .attr("transform", `translate(0,${height})`)
+                        .call(d3.axisBottom(x))
+                        .selectAll("text")
+                        .attr("transform", "translate(-10,0)rotate(-45)")
+                        .style("text-anchor", "end");
+
+                    // Y axis
+                    var y = d3.scaleLinear()
+                        .domain([0, nearest_max_word_frequency])
+                        .range([height, 0]);
+                    svg.append("g")
+                        .call(d3.axisLeft(y));
+                    var colorScale = d3.scaleOrdinal()
+                        .domain(processedData.map(d => d.word))
+                        .range(["#FF5733", "#3498db", "#27ae60", "#e74c3c", "#9b59b6", "#f39c12", "#1abc9c", "#34495e", "#d35400", "#2c3e50"]);
+
+                    // Bars
+                    svg.selectAll("mybar")
+                        .data(processedData)
+                        .join("rect")
+                        .attr("x", d => x(d.word))
+                        .attr("y", d => y(d.frequency))
+                        .attr("width", x.bandwidth())
+                        .attr("height", d => height - y(d.frequency))
+                        .attr("fill", d => colorScale(d.word));
+
+
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>
