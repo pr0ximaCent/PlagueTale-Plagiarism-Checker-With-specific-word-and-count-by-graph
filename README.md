@@ -20,16 +20,17 @@ A lightweight web app that compares two documents (PDF or DOCX), computes a simi
 
 ## 📁 Project Structure
 
+```text
 .
 ├── static/
-│ └── js/
-│ └── d3.js
+│   └── js/
+│       └── d3.js
 ├── templates/
-│ └── index.html
-├── main.py # Flask app and plagiarism logic
-├── test.py # Standalone text-to-dictionary & demo extractor
+│   └── index.html
+├── main.py          # Flask app and plagiarism logic
+├── test.py          # Standalone text-to-dictionary & demo extractor
 ├── requirements.txt # Python dependencies
-├── README.md # This file
+├── README.md        # This file
 └── .gitignore
 
 
