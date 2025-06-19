@@ -32,9 +32,7 @@ A lightweight web app that compares two documents (PDF or DOCX), computes a simi
 ├── README.md # This file
 └── .gitignore
 
-bash
-Copy
-Edit
+
 
 ## ⚙️ Installation & Setup
 
