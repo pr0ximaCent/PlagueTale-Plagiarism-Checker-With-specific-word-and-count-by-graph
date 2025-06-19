@@ -1,17 +1,44 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; }
+     
+    </style>
     <script src="{{url_for('static', filename='js/d3.js')}}"></script>
     <title>PDF to Text Converter</title>
 </head>
-<body class="bg-gray-100 p-8">
-    <div id="loadingOverlay" class="overlay"></div>
-    <div>
-        <form id="pdfForm"></form>
+<body>
+    <div id="loadingOverlay" class="overlay">
+        <div class="spinner"></div>
+        <p>Loading...</p>
     </div>
+ <body>
+    <div>
+        <h2>PDF to Text Converter</h2>
+        <form id="pdfForm">
+            <input type="file" id="file_data_1" accept=".pdf">
+            <input type="file" id="file_data_2" accept=".pdf">
+            <button type="button" onclick="convertToText()">Convert to Text</button>
+        </form>
+        <pre id="output"></pre>
+        <div id="container"></div>
+    </div>
+    <script>
+         <script>
+        function convertToText() {
+            const formData = new FormData();
+            formData.append('file_data_1', document.getElementById('file_data_1').files[0]);
+            formData.append('file_data_2', document.getElementById('file_data_2').files[0]);
+            fetch('http://127.0.0.1:5000/upload', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('output').innerText = data[0];
+                    const processed = data[1].map(d => ({ word: Object.keys(d)[0], freq: d[Object.keys(d)[0]] }));
+                });
+        }
+    </script>
 </body>
 </html>
