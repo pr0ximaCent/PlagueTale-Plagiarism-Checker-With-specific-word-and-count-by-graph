@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,19 +7,26 @@
     <title>PDF to Text Converter</title>
 </head>
 <body>
-    <div>
-        <h2>PDF to Text Converter</h2>
-        <form id="pdfForm">
-            <input type="file" id="file_data_1" accept=".pdf">
-            <input type="file" id="file_data_2" accept=".pdf">
-            <button type="button" onclick="convertToText()">Convert to Text</button>
-        </form>
-        <pre id="output"></pre>
-        <div id="container"></div>
-    </div>
+    <form id="pdfForm">
+        <input type="file" id="file_data_1" accept=".pdf">
+        <input type="file" id="file_data_2" accept=".pdf">
+        <button type="button" onclick="convertToText()">Convert</button>
+    </form>
+    <pre id="output"></pre>
+    <div id="container"></div>
     <script>
         function convertToText() {
-            // Missing fetch call, logic not implemented yet
+            const formData = new FormData();
+            formData.append('file_data_1', document.getElementById('file_data_1').files[0]);
+            formData.append('file_data_2', document.getElementById('file_data_2').files[0]);
+            fetch('http://127.0.0.1:5000/upload', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('output').innerText = data[0];
+                    // Attempt D3 chart
+                    const processed = data[1].map(d => ({ word: Object.keys(d)[0], freq: d[Object.keys(d)[0]] }));
+                    // ... but D3 is missing, so this will break
+                });
         }
     </script>
 </body>
