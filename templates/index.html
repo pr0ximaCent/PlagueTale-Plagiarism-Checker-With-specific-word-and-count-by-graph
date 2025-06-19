@@ -4,12 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/d3.js"></script> 
     <title>PDF to Text Converter</title>
 </head>
 <body>
     <form id="pdfForm">
-        <input type="file" id="file_data_1" accept=".pdf">
-        <input type="file" id="file_data_2" accept=".pdf">
+        <input type="file" id="file_data_1">
+        <input type="file" id="file_data_2">
         <button type="button" onclick="convertToText()">Convert</button>
     </form>
     <pre id="output"></pre>
@@ -23,11 +24,13 @@
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('output').innerText = data[0];
-                    // Attempt D3 chart
+                    
                     const processed = data[1].map(d => ({ word: Object.keys(d)[0], freq: d[Object.keys(d)[0]] }));
-                    // ... but D3 is missing, so this will break
+                   
                 });
         }
     </script>
 </body>
 </html>
+
+
